@@ -31,7 +31,7 @@ class UserRepository
             $key,
             [
                 'username' => $username,
-                'email'    => $email,
+                'email' => $email,
                 'password' => $password,
             ]
         );
@@ -48,7 +48,7 @@ class UserRepository
     {
         return $this->redis->hGetAll(
             $this->getHashKeyByUserName($username),
-        );
+            );
     }
 
     /**

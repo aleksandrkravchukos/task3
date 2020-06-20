@@ -4,27 +4,37 @@ namespace Sample;
 
 use Redis as Redis;
 use Sample\Repository\UserRepository;
+use Sample\Service\UserService;
 
 require 'vendor/autoload.php';
 
 $config = new Config\Config();
 
 $redis = new Redis();
+
 $redis->connect(
     $config->getRedisHost(),
     $config->getRedisPort(),
 );
 
 $userRepository = new UserRepository($redis);
+
+$userService = new UserService($userRepository);
+
 $userRepository->addUser(
     'SampleUser',
     'SampleEmail@gmail.com',
-    'SamplePassword',
+    'SamplePassword'
 );
 
-$user = $userRepository->getUser('SampleUser');
+//$user = $userRepository->getUser('SampleUser');
+//
+//var_dump($user);
 
-var_dump($user);
+$isAuthorized = $userService->authorize('SampleUser', 'SamplePassword');
+
+var_dump($isAuthorized);
+
 
 /**
  * TODOs
