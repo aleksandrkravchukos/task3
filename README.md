@@ -1,6 +1,9 @@
-# Docker / PHP 7.4 console / composer / phpunit 
+# Task 3 
 
-Blank docker project for console php 7.4 projects with composer and phpunit.
+Given we have a Redis DB. 
+We need to implement user creation and authorization. 
+On creation - we need to check for existing user.
+Also, username and password should have length validation and email should have appropriate validation.
 
 ## Prerequisites
 
@@ -18,31 +21,22 @@ If dist files are not copied to actual destination, then
     
     Make copy-dist-configs
 
-## Run docker 
+## Run containers 
 
-    docker-compose up -d
+    Make up
     
 ## Check docker containers
 
     docker ps    
 
-## Create database 
+## Run all tests
 
-    docker exec -i mysql8 mysql -uroot -proot  content < dump/task1.sql        
+Runs container and executes both Unit and functional tests.
 
-## Run functional tests
-
-Runs container and executes functional tests.
-
-    Make functional-tests
+    Make all-tests
 
 ## Static analysis
 
 Static analysis check
 
     Make static-analysis
-    
-## Algorithm 
-
-* Create simple user and check if exist
-* Authorize user

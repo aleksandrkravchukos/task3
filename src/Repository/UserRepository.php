@@ -4,10 +4,8 @@ namespace Sample\Repository;
 
 use Redis as Redis;
 
-class UserRepository
+class UserRepository implements UserRepositoryInterface
 {
-    const USER_HASH_PREFIX = 'user';
-
     private Redis $redis;
 
     public function __construct(Redis $redis)
@@ -16,12 +14,7 @@ class UserRepository
     }
 
     /**
-     * Insert user
-     *
-     * @param string $username
-     * @param string $email
-     * @param string $password
-     * @return bool
+     * @inheritDoc
      */
     public function addUser(string $username, string $email, string $password): bool
     {
@@ -31,24 +24,20 @@ class UserRepository
             $key,
             [
                 'username' => $username,
-                'email' => $email,
+                'email'    => $email,
                 'password' => $password,
             ]
         );
     }
 
     /**
-     * Get user
-     *
-     * @param string $username
-     *
-     * @return array
+     * @inheritDoc
      */
     public function getUser(string $username): array
     {
-        return $this->redis->hGetAll(
-            $this->getHashKeyByUserName($username),
-            );
+        $key = $this->getHashKeyByUserName($username);
+
+        return $this->redis->hGetAll($key);
     }
 
     /**

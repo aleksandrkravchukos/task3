@@ -1,12 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace SampleTest\Functional;
+namespace SampleTest\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Redis as Redis;
-use Sample\Config\Config;
 use Sample\Exception\ValidationException;
-use Sample\Repository\UserRepository;
 use Sample\Repository\UserRepositoryInterface;
 use Sample\Service\UserService;
 use Sample\Service\UserServiceInterface;
@@ -16,7 +13,7 @@ class UserServiceTest extends TestCase
     /**
      * @var UserRepositoryInterface
      */
-    private UserRepositoryInterface $userRepository;
+    private UserRepositoryInterface $userRepositoryMock;
 
     /**
      * @var UserServiceInterface
@@ -25,20 +22,9 @@ class UserServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $config = new Config();
+        $this->userRepositoryMock = $this->createMock(UserRepositoryInterface::class);
 
-        $redis = new Redis();
-
-        $redis->connect(
-            $config->getRedisHost(),
-            $config->getRedisPort(),
-        );
-
-        $this->userRepository = new UserRepository($redis);
-
-        $this->userService = new UserService($this->userRepository);
-
-        $redis->flushAll();
+        $this->userService = new UserService($this->userRepositoryMock);
     }
 
     /**
@@ -46,16 +32,16 @@ class UserServiceTest extends TestCase
      */
     public function canAddUser(): void
     {
+        $this->userRepositoryMock->expects($this->once())
+            ->method('addUser');
+
         $this->userService->addUser(
             'SampleUser',
             'SampleEmail@gmail.com',
             'SamplePassword',
         );
 
-        $user = $this->userRepository->getUser('SampleUser');
-
-        $this->assertNotEmpty($user);
-        $this->assertEquals('SampleUser', $user['username']);
+        $user = $this->userRepositoryMock->getUser('SampleUser');
     }
 
     /**
@@ -141,11 +127,14 @@ class UserServiceTest extends TestCase
         $password = 'SomePassword';
         $passHash = password_hash($password, PASSWORD_ARGON2I, UserService::PASSWORD_ENCRYPTION_PARAMS);
 
-        $this->userRepository->addUser(
-            'SomeUser',
-            'SampleEmail@gmail.com',
-            $passHash,
-        );
+        $this->userRepositoryMock->method('getUser')
+            ->willReturn(
+                [
+                    'username' => 'SomeUser',
+                    'email'    => 'SampleEmail@gmail.com',
+                    'password' => $passHash,
+                ]
+            );
 
         $isAuthorized = $this->userService->authorize('SomeUser', $password);
 
@@ -163,11 +152,8 @@ class UserServiceTest extends TestCase
         $password = 'SomePassword';
         $passHash = password_hash($password, PASSWORD_ARGON2I, UserService::PASSWORD_ENCRYPTION_PARAMS);
 
-        $this->userRepository->addUser(
-            'SomeUser',
-            'SampleEmail@gmail.com',
-            $passHash,
-        );
+        $this->userRepositoryMock->method('getUser')
+            ->willReturn([]);
 
         $this->userService->authorize('NotExistingUser', $password);
     }
@@ -183,11 +169,14 @@ class UserServiceTest extends TestCase
         $password = 'SomePassword';
         $passHash = password_hash($password, PASSWORD_ARGON2I, UserService::PASSWORD_ENCRYPTION_PARAMS);
 
-        $this->userRepository->addUser(
-            'SomeUser',
-            'SampleEmail@gmail.com',
-            $passHash,
-        );
+        $this->userRepositoryMock->method('getUser')
+            ->willReturn(
+                [
+                    'username' => 'SomeUser',
+                    'email'    => 'SampleEmail@gmail.com',
+                    'password' => $passHash,
+                ]
+            );
 
         $this->userService->authorize('SomeUser', 'WrongPassword');
     }
